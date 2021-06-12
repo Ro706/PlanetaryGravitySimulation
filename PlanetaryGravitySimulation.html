@@ -1,0 +1,107 @@
+<html>
+ <head> 
+  <meta charset="UTF-8"> 
+  <meta http-equiv="X-UA-Compatible" content="IE=edge"> 
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+  <title>Gravity</title> 
+  <style>
+        body{
+            margin: 0;
+            padding: 0;
+            overflow:hidden;
+        }
+    </style>
+ </head> 
+ <body> 
+  <canvas id="canvas"></canvas> 
+  <script>
+            alert('ATTENTION\n------------\nWelcome to planetary gravity simulation.\n There is an attractor or sun is there at the center of the screen.\nClick anywhere on the screen to generate a particle or planet. ');
+            alert('Feel free to fork the file and change the values of gravity or mass etc.. however you like. ');
+            const G=6.674e-11;
+            var c=document.querySelector('#canvas');
+            var ctx=c.getContext('2d');
+            c.width=innerWidth-2;
+            c.height=innerHeight-3;
+            class attractor{
+                constructor(x,y,m,r){
+                    this.x=x;
+                    this.y=y;
+                    this.m=m;
+                    this.r=r;
+                }
+                draw(){
+                    ctx.fillStyle='#000050';
+                    ctx.beginPath();
+                    ctx.arc(this.x,this.y,this.r,Math.PI*2,false);
+                    ctx.fill();
+                }
+                attract(mover){
+                    var d=Math.hypot(this.x-mover.x,this.y-mover.y);
+                    var force=G*this.m*mover.m/(d*d);
+                    var angle=Math.atan2(this.y-mover.y,this.x-mover.x);
+                    mover.vy+=Math.sin(angle)*force;
+                    mover.vx+=Math.cos(angle)*force;
+                }
+            }
+            class particle{
+                constructor(x,y,m,r,dir){
+                    this.x=x;
+                    this.y=y;
+                    this.m=m;
+                    this.r=r;
+                    this.vy=(Math.random()-0.5)*5;
+                    this.vx=(Math.random()-0.5)*5;
+                }
+                draw(){
+                    ctx.fillStyle='#ffffff';
+                    ctx.beginPath();
+                    ctx.arc(this.x,this.y,this.r,Math.PI*2,false);
+                    ctx.fill();
+                }
+                move(){
+                    this.draw();
+                    this.x+=this.vx;
+                    this.y+=this.vy;
+                }
+                attract(mover){
+                    var d=Math.hypot(this.x-mover.x,this.y-mover.y);
+                    var force=G*this.m*mover.m/(d*d);
+                    var angle=Math.atan2(this.y-mover.y,this.x-mover.x);
+                    mover.vy+=Math.sin(angle)*force;
+                    mover.vx+=Math.cos(angle)*force;
+                }
+            }
+            var a=new attractor(c.width/2,c.height/2,1000000000,20);
+            var movers=[];
+            var mover=new particle(c.width,c.height/4,10000,10);
+            function animate(){
+                ctx.fillStyle='#00000005';
+                ctx.beginPath();
+                ctx.rect(0,0,c.width,c.height);
+                ctx.fill();
+                requestAnimationFrame(animate);
+                a.draw();
+                for(let i in movers){
+                    for(let j in movers)
+                        if(movers[i]!==movers[j])
+                            movers[i].attract(movers[j]);
+                    a.attract(movers[i]);
+                    movers[i].move();
+                }
+                // to remove any particle if it is more than 10000 px from the attractor
+                for(let i in movers)
+                    if(movers[i].x > 10000 || movers[i].x<-10000 || movers[i].y>10000 || movers[i].y<-10000)
+                        movers.splice(i,1);
+            }
+            animate();
+            document.addEventListener('click',createParticle);
+            var no=0;
+            function createParticle(e){
+                var x=e.clientX;
+                var y=e.clientY;
+                no++;
+                movers.push(new particle(x,y,50000,10,no%2==0));
+            }
+        </script> 
+ </body>
+</html>
